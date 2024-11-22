@@ -1,0 +1,17 @@
+Historical Hourly Weather Data 2012-2017:
+https://www.kaggle.com/datasets/selfishgene/historical-hourly-weather-data
+
+Humidity: Percent
+Pressure: Pascals
+Temperature: Kelvin
+Weather Description: Text
+Wind Direction: Degrees (0 == North, clockwise increase)
+Wind Speed: Meters per Second
+
+Content
+The dataset contains ~5 years of high temporal resolution (hourly measurements) data of various weather attributes, such as temperature, humidity, air pressure, etc.
+This data is available for 30 US and Canadian Cities, as well as 6 Israeli cities.
+I've organized the data according to a common time axis for easy use.
+Each attribute has it's own file and is organized such that the rows are the time axis (it's the same time axis for all files), and the columns are the different cities (it's the same city ordering for all files as well).
+Additionally, for each city we also have the country, latitude and longitude information in a separate file.
+
