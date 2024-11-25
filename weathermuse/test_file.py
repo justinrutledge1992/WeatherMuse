@@ -21,7 +21,7 @@ print("\n")
 from audiocraft.models import MusicGen
 model = MusicGen.get_pretrained('facebook/musicgen-small')  # Options: 'small', 'medium', 'melody'
 text_prompt = ["a serene piano melody similar to beethoven's midnight sonata"]
-model.set_generation_params(duration=10)
+model.set_generation_params(duration=5)
 generated_audio = model.generate(text_prompt, progress=True)
 
 ######################################################################

@@ -1,53 +1,97 @@
 import torch
-from torch import nn
-import torch.nn.functional as F
-from typing import List, Tuple, Optional
+import typing as tp
+from collections import defaultdict
 from audiocraft.modules.conditioners import BaseConditioner
+from audiocraft.modules.conditioners import ConditioningProvider
+from audiocraft.modules.conditioners import ConditioningAttributes
+from audiocraft.utils.utils import length_to_mask
+from dataclasses import dataclass, field
+ConditionType = tp.Tuple[torch.Tensor, torch.Tensor]  # condition, mask
+
+# Extend the ConditioningAttributes base class
+@dataclass
+class WeatherConditioningAttributes(ConditioningAttributes):
+    weather: tp.Dict[str, torch.Tensor] = field(default_factory=dict)
+
+class WeatherConditioningProvider(ConditioningProvider):
+    def __init__(self, conditioners, device="cpu"):
+        super().__init__(conditioners, device)
+
+    @property
+    def weather_conditions(self):
+        return [k for k, v in self.conditioners.items() if k == 'weather']
+
+    def _collate_weather(self, samples):
+        weather = defaultdict(list)
+        for sample in samples:
+            for condition in self.weather_conditions:
+                weather[condition].append(sample.weather.get(condition, None))
+        return weather
 
 class WeatherConditioner(BaseConditioner):
-    def __init__(self, num_attributes: int, output_dim: int, max_hours: int, pad_idx: int = 0):
+    def __init__(self, num_attributes: int, output_dim: int, max_hours: int):
+        """
+        Args:
+            num_attributes (int): Number of weather attributes (e.g., temperature, humidity).
+            output_dim (int): Output embedding dimension.
+            max_hours (int): Maximum number of hours for weather data.
+        """
         super().__init__(dim=num_attributes, output_dim=output_dim)
-        self.num_attributes = num_attributes  # Number of weather attributes (e.g., temperature, humidity)
-        self.max_hours = max_hours            # Max number of hours to consider
-        self.pad_idx = pad_idx                # Padding index for missing hours
+        self.num_attributes = num_attributes
+        self.max_hours = max_hours
 
-    def tokenize(self, data: List[Optional[List[float]]]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def tokenize(self, data: torch.Tensor) -> tp.Dict[str, torch.Tensor]:
         """
-        Tokenize weather data where each hour is a token, and dimensions are weather attributes.
+        Tokenize weather data into embeddings.
 
         Args:
-            data (List[List[float]]): List of hourly weather data, where each hour's data is a list of attribute values.
-            e.g., [[temp1, humidity1, pressure1], [temp2, humidity2, pressure2], ...]
+            data (torch.Tensor): Weather data tensor of shape [T, num_attributes].
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor]: Condition tensor of shape [B, T, D] and mask tensor of shape [B, T].
+            dict: Dictionary with:
+                "embeddings": Condition embeddings.
+                "lengths": Actual lengths of each input sequence.
         """
-        # Initialize condition tensor with padding values and mask tensor
-        condition = torch.full((len(data), self.max_hours, self.num_attributes), self.pad_idx, dtype=torch.float32)
-        mask = torch.zeros(len(data), self.max_hours, dtype=torch.int)
+        if data.ndim != 2 or data.shape[1] != self.num_attributes:
+            raise ValueError(f"Expected input shape [T, {self.num_attributes}], got {data.shape}")
 
-        # Populate condition tensor and mask with actual data
-        for i, hourly_data in enumerate(data):
-            for j, hour in enumerate(hourly_data[:self.max_hours]):  # Limit to max_hours
-                if hour is None or len(hour) != self.num_attributes:
-                    continue  # Skip this hour if it contains incomplete data
-                condition[i, j] = torch.tensor(hour)
-                mask[i, j] = 1  # Mark as valid data
+        # Truncate to `max_hours` and return as is (no padding yet)
+        truncated = data[:self.max_hours]
+        return {"embeddings": truncated, "lengths": torch.tensor([len(truncated)])}
 
-        return condition, mask
-
-    def forward(self, tokenized_data: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, inputs: tp.Dict[str, torch.Tensor]) -> ConditionType:
         """
-        Apply embedding projection to weather data and apply mask.
+        Forward method for WeatherConditioner.
 
         Args:
-            tokenized_data (Tuple[torch.Tensor, torch.Tensor]): Condition tensor and mask tensor.
+            inputs (dict): Dictionary containing:
+                - 'embeddings': Tensor of shape [B, T, num_attributes]
+                - 'lengths': Tensor of shape [B], indicating sequence lengths.
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor]: Embedded condition tensor and mask tensor.
+            tuple: A tuple containing:
+                - Tensor of shape [B, T, output_dim]: The embeddings.
+                - Tensor of shape [B, T]: The mask.
         """
-        condition, mask = tokenized_data
-        # Project condition tensor to output dimension
-        condition_embedded = self.output_proj(condition)
-        condition_embedded = condition_embedded * mask.unsqueeze(-1)  # Apply mask to remove padding effects
-        return condition_embedded, mask
+        embeddings = inputs['embeddings']  # Shape: [B, T, num_attributes]
+        lengths = inputs['lengths']        # Shape: [B]
+
+        # Project embeddings to output_dim
+        embeddings = self.output_proj(embeddings)  # Shape: [B, T, output_dim]
+
+        # Ensure the mask matches the sequence length of embeddings
+        max_len = embeddings.shape[0]  # Match the sequence length of embeddings
+        mask = length_to_mask(lengths, max_len=max_len).int()  # Shape: [B, T]
+
+        # TROUBLSHOOTING
+        print(f"embeddings.shape: {embeddings.shape}")
+        print(f"lengths: {lengths}")
+        print(f"mask.shape (before unsqueeze): {mask.shape}")
+        print(f"inputs['embeddings'].shape: {inputs['embeddings'].shape}")
+        print(f"inputs['lengths']: {inputs['lengths']}")
+
+        # Apply mask to embeddings
+        embeddings = embeddings * mask.unsqueeze(-1)  # Broadcast mask to match embedding shape
+
+        return embeddings, mask
+    
