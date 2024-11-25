@@ -2,9 +2,9 @@ WeatherMuse is an extension of Meta's MusicGen model used for musical interpreta
 
 This requires all the same dependencies as AudioCraft (including older versions of Torch, CUDA, etc.).
 
-Run test_file.py to confirm your environment is setup correctly.
+- Run weathermuse/test_file.py to confirm your environment is setup correctly.
 
-Run main.py and adjust the constants at the top of the file (associated with the hourly_weather_data csv file names) to generate music from different cities.
+- Run weathermuse/main.py and adjust the constants at the top of the file (associated with csv file names in the hourly_weather_data folder) to generate music from different cities.
 
 All modifications to the original Audiocraft project are found in the following two folders:
 
