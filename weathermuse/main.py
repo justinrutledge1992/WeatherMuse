@@ -6,7 +6,7 @@ import torchaudio
 import pandas as pd
 
 # Set the constant:
-CITY = 'miami' # The desired city data (will take the first 24 hours available)
+CITY = 'chicago' # The desired city data (will take the first 24 hours available)
 FOLDER = 'iteration_1' # The output subfolder
 
 '''
