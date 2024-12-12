@@ -9,7 +9,7 @@ from audiocraft.models.builders import get_lm_model, dict_from_config, get_condi
 
 
 def get_weather_lm_model(cfg: omegaconf.DictConfig) -> WeatherLM:
-    """Instantiate a transformer LM as WeatherLM."""
+    # Instantiate a transformer LM as WeatherLM
     if cfg.lm_model == "transformer_lm":
         # Extract configuration details
         kwargs = dict_from_config(getattr(cfg, "transformer_lm"))

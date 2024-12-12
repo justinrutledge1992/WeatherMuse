@@ -4,7 +4,6 @@ from weather_conditioner import WeatherConditioningAttributes
 from weather_conditioner import WeatherConditioningProvider
 from audiocraft.models.loaders import load_compression_model
 from helpers import load_lm_model
-from weatherlm import WeatherLM
 import torch
 import typing as tp
 
@@ -29,8 +28,10 @@ class WeatherMuse(MusicGen):
         if device is None:
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-        # Load pretrained MusicGen components
+        # load_compression_model is from audiocraft.models.loaders:
         compression_model = load_compression_model(name, device=device)
+
+        # load_lm_model is from helpers.py, a tailor-made function:
         lm = load_lm_model(name, device=device)
 
         # Create an instance of WeatherMuse with the custom language model
@@ -48,7 +49,7 @@ class WeatherMuse(MusicGen):
         Returns:
             torch.Tensor: Generated audio or a tuple of audio and tokens.
         """
-            # Move weather data to the correct device
+        # Move weather data to the correct device
         weather_data = weather_data.to(self.device)
 
         # Prepare conditioning attributes for weather data only

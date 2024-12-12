@@ -7,7 +7,7 @@ import pandas as pd
 
 # Set the constant:
 CITY = 'miami' # The desired city data (will take the first 24 hours available)
-FOLDER = 'iteration_1/' # The output subfolder
+FOLDER = 'iteration_1' # The output subfolder
 
 '''
     The value of CITY should be lowercase; reference the dataset for available names
@@ -39,7 +39,6 @@ weather_tensor = preprocess_data(CITY, 'minmax', path)
 
 # Load a pretrained model and provide the cleaned weather data:
 model = WeatherMuse.get_pretrained('facebook/musicgen-small')
-attributes = model._prepare_tokens_and_attributes(weather_data=weather_tensor)
 
 # Set the generation parameters (duration in seconds)
 model.set_generation_params(duration=10)

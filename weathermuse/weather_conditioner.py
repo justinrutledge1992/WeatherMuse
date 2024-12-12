@@ -55,7 +55,7 @@ class WeatherConditioner(BaseConditioner):
         if data.ndim != 2 or data.shape[1] != self.num_attributes:
             raise ValueError(f"Expected input shape [T, {self.num_attributes}], got {data.shape}")
 
-        # Truncate to `max_hours` and return as is (no padding yet)
+        # Truncate to max_hours and return as is (no padding yet)
         truncated = data[:self.max_hours]
         return {"embeddings": truncated, "lengths": torch.tensor([len(truncated)])}
 
