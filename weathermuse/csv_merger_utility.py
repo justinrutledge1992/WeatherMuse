@@ -1,7 +1,10 @@
+# This file is used to reformat the available dataset
+
 import pandas as pd
+import os
 
 # Use pandas to read each csv file:
-data_path = 'D:/File Storage/Documents/UTC/Thesis/WeatherMuse/audiocraft/hourly_weather_data/'
+data_path = os.path.join(os.getcwd(), "weathermuse", "hourly_weather_data", "original_data")
 city_attributes = pd.read_csv(f'{data_path}city_attributes.csv')
 weather_description = pd.read_csv(f'{data_path}weather_description.csv')
 temperature = pd.read_csv(f'{data_path}temperature.csv')
@@ -40,7 +43,6 @@ for index, row in city_attributes.iterrows():
         # Concatenate the extracted data to the merged DataFrame
         merged_data = pd.concat([merged_data, data], axis=1)
     
-
     column_names = ['datetime', 'weather_description', 'temperature', 'humidity', 'pressure', 'wind_direction', 'wind_speed']
     merged_data.columns = [name for name in column_names]
 

@@ -6,10 +6,7 @@ This requires all the same dependencies as AudioCraft (including older versions 
 
 - Run weathermuse/main.py and adjust the constants at the top of the file (associated with csv file names in the hourly_weather_data folder) to generate music from different cities.
 
-All modifications to the original Audiocraft project are found in the following two folders:
-
-hourly_weather_data
-weathermuse
+All extensions to the original Audiocraft project are found in the "weathermuse" folder. The rest of the original source code is available to allow for local training.
 
 This is a standalone branch from Meta's AudioCraft project, found at:
 https://github.com/facebookresearch/audiocraft

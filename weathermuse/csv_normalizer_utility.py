@@ -1,3 +1,6 @@
+# This file is used to preprocess the available hourly weather data across all cities
+
+import os
 import pandas as pd
 import numpy as np
 
@@ -20,7 +23,7 @@ def normalize_and_write_to_file(data, value_name):
 
 # Use pandas to read and clean up the weather data:
 # Use pandas to read each csv file:
-data_path = 'D:/File Storage/Documents/UTC/Thesis/WeatherMuse/audiocraft/hourly_weather_data/original_data/'
+data_path = os.path.join(os.getcwd(), "weathermuse", "hourly_weather_data", "original_data")
 city_attributes = pd.read_csv(f'{data_path}city_attributes.csv')
 weather_description = pd.read_csv(f'{data_path}weather_description.csv')
 temperature = pd.read_csv(f'{data_path}temperature.csv')

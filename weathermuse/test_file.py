@@ -3,6 +3,7 @@
 
 # Check environment compatibility
 import torch
+import os
 print("PyTorch version:", torch.__version__)
 if (torch.__version__ != "2.1.0+cu121"):
     print("WARNING! Wrong version of torch installed; 2.1.0+cu121 is needed.")
@@ -30,7 +31,8 @@ generated_audio = model.generate(text_prompt, progress=True)
 # Save the generated audio to a .wav file
 import torchaudio
 file_name = "audio.wav"
-output_path = f"D:/File Storage/Documents/UTC/Thesis/WeatherMuse/audiocraft/weathermuse/output_files/{file_name}"
+current_dir = os.getcwd()
+output_path = os.path.join(current_dir, "weathermuse", "output_files", "test_samples", file_name)
 torchaudio.save(output_path, generated_audio[0].cpu(), model.sample_rate)
 print(f"Audio saved to {output_path}")
 
